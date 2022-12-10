@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 
-import socket
+from pythonosc.dispatcher import Dispatcher
+from pythonosc.osc_server import BlockingOSCUDPServer
 
-UDP_IP = "127.0.0.1"
-UDP_PORT = 12000
+def print_handler(address, *args):
+    print(f"{address}: {args}")
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+def default_handler(address, *args):
+    print(f"DEFAULT {address}: {args}")
 
-sock.bind((UDP_IP, UDP_PORT))
+dispatcher = Dispatcher()
+dispatcher.map("/note", print_handler)
+dispatcher.set_default_handler(default_handler)
 
-while True:
-  data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-  print "received message:", data
+ip = "127.0.0.1"
+port = 12000
+
+server = BlockingOSCUDPServer((ip, port), dispatcher)
+server.serve_forever()  # Blocks forever
